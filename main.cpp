@@ -4,6 +4,13 @@
 
 const char X_AXIS_LABELS[8] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'};
 
+// Weird moves:
+// - Castle
+// - Pawn changes into something new - how the fuck do we represent that "move"
+// in tree search?
+// - Pawn moves backwards <- fuck that
+// - Moves are constrained by check
+
 std::string renderChessPiece(int n) {
     bool black = n < 0;
 
@@ -57,6 +64,7 @@ std::string Move::toString() {
     return X_AXIS_LABELS[this->x1] + std::to_string(this->y1 + 1) + "->" +
            X_AXIS_LABELS[this->x2] + std::to_string(this->y2 + 1);
 }
+
 class State {
    public:
     int board[8][8] = {
@@ -113,13 +121,25 @@ std::vector<Move> State::getPositionMoves(int x, int y) {
         }
         // PAWN
         case 1: {
-            // moving forward by one or two
-            moves.push_back(Move(x, y, x, y + (1 * forwardMultiplier)));
-            moves.push_back(Move(x, y, x, y + (2 * forwardMultiplier)));
+            // Is forward empty?
+            if (this->board[y + (1 * forwardMultiplier)][x] == 0) {
+                moves.push_back(Move(x, y, x, y + (1 * forwardMultiplier)));
+                // Is two forwards empty and am I at start?
+                if (this->board[y + (2 * forwardMultiplier)][x] == 0 &&
+                    (black ? y == 6 : y == 1)) {
+                    moves.push_back(Move(x, y, x, y + (2 * forwardMultiplier)));
+                }
+            }
 
             // Left/right attacks
-            moves.push_back(Move(x, y, x + 1, y + (1 * forwardMultiplier)));
-            moves.push_back(Move(x, y, x - 1, y + (1 * forwardMultiplier)));
+            if (x < 7 &&
+                piece * this->board[y + (1 * forwardMultiplier)][x + 1] < 0) {
+                moves.push_back(Move(x, y, x + 1, y + (1 * forwardMultiplier)));
+            }
+            if (x > 0 &&
+                piece * this->board[y + (1 * forwardMultiplier)][x - 1] < 0) {
+                moves.push_back(Move(x, y, x - 1, y + (1 * forwardMultiplier)));
+            }
             return moves;
         }
         // ROOK
