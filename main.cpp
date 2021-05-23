@@ -178,8 +178,28 @@ std::vector<Move> State::getPositionMoves(int x, int y) {
             return moves;
         }
         // HORSE
-        case 3:
+        case 3: {
+            const int KNIGHT_OFFSETS[8][2] = {
+                {-1, 2}, {1, 2}, {-1, -2}, {1, -2},
+                {2, -1}, {2, 1}, {-2, -1}, {-2, 1},
+            };
+
+            int x2, y2;
+
+            for (int i = 0; i < 8; i++) {
+                y2 = y + KNIGHT_OFFSETS[i][0];
+                x2 = x + KNIGHT_OFFSETS[i][1];
+
+                // are they still on the board?
+                if (y2 >= 0 && y2 <= 7 && x2 >= 0 && x2 <= 7) {
+                    // do they land in either an empty field, or on the opponent
+                    if (piece * this->board[y2][x2] <= 0) {
+                        moves.push_back(Move(x, y, x2, y2));
+                    }
+                }
+            }
             return moves;
+        }
         // BISHOP
         case 4:
             return moves;
@@ -217,7 +237,7 @@ int main() {
     state.render();
 
     std::cout << "Value: " << state.value() << std::endl;
-    std::vector<Move> moves = state.getPositionMoves(0, 1);
+    std::vector<Move> moves = state.getPositionMoves(1, 0);
     if (moves.size() > 0) {
         for (int i = 0; i < moves.size(); i++) {
             std::cout << moves.at(i).toString() << std::endl;
