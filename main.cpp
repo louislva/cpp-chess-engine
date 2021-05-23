@@ -31,7 +31,9 @@ std::string renderChessPiece(int n) {
             return black ? "♔" : "♚";
 
         default:
-            break;
+            throw std::out_of_range(
+                "All pieces must have ids between -6 and 6. You provided " +
+                std::to_string(n));
     }
 }
 
