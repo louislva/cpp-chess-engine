@@ -60,28 +60,28 @@ std::string Move::toString() {
 class State {
    public:
     int board[8][8] = {
-        {-2, -3, -4, -5, -6, -4, -3, -2}, {-1, -1, -1, -1, -1, -1, -1, -1},
+        {2, 3, 4, 5, 6, 4, 3, 2},         {1, 1, 1, 1, 1, 1, 1, 1},
         {0, 0, 0, 0, 0, 0, 0, 0},         {0, 0, 0, 0, 0, 0, 0, 0},
         {0, 0, 0, 0, 0, 0, 0, 0},         {0, 0, 0, 0, 0, 0, 0, 0},
-        {1, 1, 1, 1, 1, 1, 1, 1},         {2, 3, 4, 5, 6, 4, 3, 2},
+        {-1, -1, -1, -1, -1, -1, -1, -1}, {-2, -3, -4, -5, -6, -4, -3, -2},
     };
     State();
     int value();
     void render();
     State stateTransitionFunction();
-    std::vector<Move> getPositionLegalMoves();
+    std::vector<Move> getPositionMoves(int x, int y);
 };
 State::State(void) {}
 
 int State::value() {
     int totalValue = 0;
-    for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 8; j++) {
+    for (int y = 0; y < 8; y++) {
+        for (int x = 0; x < 8; x++) {
             // if it's a king, go nuts
-            if (abs(this->board[i][j]) == 6) {
-                totalValue += (this->board[i][j] * 10000);
+            if (abs(this->board[y][x]) == 6) {
+                totalValue += (this->board[y][x] * 10000);
             } else {
-                totalValue += this->board[i][j];
+                totalValue += this->board[y][x];
             }
         }
     }
@@ -90,20 +90,88 @@ int State::value() {
 
 void State::render() {
     std::cout << "--------\n";
-    for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 8; j++) {
-            std::cout << renderChessPiece(this->board[i][j]);
+    for (int y = 0; y < 8; y++) {
+        for (int x = 0; x < 8; x++) {
+            std::cout << renderChessPiece(this->board[y][x]);
         }
         std::cout << "\n";
     }
     std::cout << "--------\n";
 }
 
-std::vector<Move> State::getPositionLegalMoves() {
+std::vector<Move> State::getPositionMoves(int x, int y) {
     std::vector<Move> moves;
-    moves.push_back(Move('A', 2, 'A', 4));
 
-    return moves;
+    int piece = this->board[y][x];
+    bool black = piece < 0;
+    int forwardMultiplier = black ? -1 : 1;
+
+    switch (abs(piece)) {
+        // EMPTY
+        case 0: {
+            return moves;
+        }
+        // PAWN
+        case 1: {
+            // moving forward by one or two
+            moves.push_back(Move(x, y, x, y + (1 * forwardMultiplier)));
+            moves.push_back(Move(x, y, x, y + (2 * forwardMultiplier)));
+
+            // Left/right attacks
+            moves.push_back(Move(x, y, x + 1, y + (1 * forwardMultiplier)));
+            moves.push_back(Move(x, y, x - 1, y + (1 * forwardMultiplier)));
+            return moves;
+        }
+        // ROOK
+        case 2: {
+            // Go through each direction (left, right, up, down), and add legal
+            // moves until we hit another piece. If the piece we hit is from the
+            // other color, we add that one, and THEN break. If it's our own, we
+            // just break without adding it, because we cannot attack our own.
+            // We determine whether the piece we hit is foreign, by multiplying
+            // the "piece" and whatever piece we have. Two positives (whites) or
+            // two negatives (blacks) makes positive value, and then we know
+            // it's our own.
+
+            for (int x2 = x + 1; x2 < 8; x2++) {
+                if (piece * this->board[y][x2] > 0) break;
+                moves.push_back(Move(x, y, x2, y));
+                if (this->board[y][x2] != 0) break;
+            }
+            for (int y2 = y + 1; y2 < 8; y2++) {
+                if (piece * this->board[y2][x] > 0) break;
+                moves.push_back(Move(x, y, x, y2));
+                if (this->board[y2][x] != 0) break;
+            }
+            for (int x2 = x - 1; x2 >= 0; x2--) {
+                if (piece * this->board[y][x2] > 0) break;
+                moves.push_back(Move(x, y, x2, y));
+                if (this->board[y][x2] != 0) break;
+            }
+            for (int y2 = y - 1; y2 >= 0; y2--) {
+                if (piece * this->board[y2][x] > 0) break;
+                moves.push_back(Move(x, y, x, y2));
+                if (this->board[y2][x] != 0) break;
+            }
+            return moves;
+        }
+        // HORSE
+        case 3:
+            return moves;
+        // BISHOP
+        case 4:
+            return moves;
+        // QUEEN
+        case 5:
+            return moves;
+        // KING
+        case 6:
+            return moves;
+
+        default:
+            return moves;
+            // TODO: throw
+    }
 
     // what is my piece?
     // under the best circumstances, which moves are avaible?
@@ -125,9 +193,16 @@ int main() {
     State state;
 
     state.render();
-    std::cout << "Value: " << state.value() << std::endl;
 
-    std::cout << state.getPositionLegalMoves()[0].toString() << std::endl;
+    std::cout << "Value: " << state.value() << std::endl;
+    std::vector<Move> moves = state.getPositionMoves(0, 1);
+    if (moves.size() > 0) {
+        for (int i = 0; i < moves.size(); i++) {
+            std::cout << moves.at(i).toString() << std::endl;
+        }
+    } else {
+        std::cout << "Yoo man populate the moves" << std::endl;
+    }
 
     return 0;
 }
