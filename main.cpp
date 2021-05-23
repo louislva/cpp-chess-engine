@@ -1,6 +1,32 @@
 #include <iostream>
 #include <string>
 
+// ♙♟ ♖ ♜ ♘ ♞ ♗ ♝ ♕ ♛ ♔ ♚
+
+std::string renderChessPiece(int n) {
+    bool black = n < 0;
+
+    switch (abs(n)) {
+        case 0:
+            return " ";
+        case 1:
+            return black ? "♙" : "♟";
+        case 2:
+            return black ? "♖" : "♜";
+        case 3:
+            return black ? "♘" : "♞";
+        case 4:
+            return black ? "♗" : "♝";
+        case 5:
+            return black ? "♕" : "♛";
+        case 6:
+            return black ? "♔" : "♚";
+
+        default:
+            break;
+    }
+}
+
 class State {
    public:
     int board[8][8] = {
@@ -11,9 +37,10 @@ class State {
     };
     State();
     int value();
+    void render();
 };
 
-State::State(void) { std::cout << "Chess-board object is being created\n"; }
+State::State(void) {}
 int State::value() {
     int totalValue = 0;
     for (int i = 0; i < 8; i++) {
@@ -28,20 +55,21 @@ int State::value() {
     }
     return totalValue;
 }
-
-int main() {
-    State state;
-
-    std::cout << "CHESS BOARD:\n";
+void State::render() {
     std::cout << "--------\n";
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
-            std::cout << state.board[i][j];
+            std::cout << renderChessPiece(this->board[i][j]);
         }
         std::cout << "\n";
     }
     std::cout << "--------\n";
+}
 
+int main() {
+    State state;
+
+    state.render();
     std::cout << "Value: " << state.value() << std::endl;
     return 0;
 }
