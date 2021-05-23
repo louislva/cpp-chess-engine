@@ -1,7 +1,8 @@
 #include <iostream>
 #include <string>
+#include <vector>
 
-// ♙♟ ♖ ♜ ♘ ♞ ♗ ♝ ♕ ♛ ♔ ♚
+const char X_AXIS_LABELS[8] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'};
 
 std::string renderChessPiece(int n) {
     bool black = n < 0;
@@ -27,6 +28,35 @@ std::string renderChessPiece(int n) {
     }
 }
 
+class Move {
+   public:
+    int x1 = 1;  // in real chess, this is a char
+    int y1 = 2;
+    int x2 = 3;  // in real chess, this is a char
+    int y2 = 4;
+    Move(int x1, int y1, int x2, int y2);
+    Move(char x1, int y1, char x2, int y2);
+    std::string toString();
+};
+// Machine constructor (every position is int from 0-7)
+Move::Move(int x1, int y1, int x2, int y2) {
+    this->x1 = x1;
+    this->y1 = y1;
+    this->x2 = x2;
+    this->y2 = y2;
+}
+// Human constructor (x is A-H; y is 1-8)
+Move::Move(char x1, int y1, char x2, int y2) {
+    this->x1 = std::find(X_AXIS_LABELS, X_AXIS_LABELS + 8, x1) - X_AXIS_LABELS;
+    this->y1 = y1 - 1;
+    this->x2 = std::find(X_AXIS_LABELS, X_AXIS_LABELS + 8, x2) - X_AXIS_LABELS;
+    this->y2 = y2 - 1;
+}
+
+std::string Move::toString() {
+    return X_AXIS_LABELS[this->x1] + std::to_string(this->y1 + 1) + "->" +
+           X_AXIS_LABELS[this->x2] + std::to_string(this->y2 + 1);
+}
 class State {
    public:
     int board[8][8] = {
@@ -38,9 +68,11 @@ class State {
     State();
     int value();
     void render();
+    State stateTransitionFunction();
+    std::vector<Move> getPositionLegalMoves();
 };
-
 State::State(void) {}
+
 int State::value() {
     int totalValue = 0;
     for (int i = 0; i < 8; i++) {
@@ -55,6 +87,7 @@ int State::value() {
     }
     return totalValue;
 }
+
 void State::render() {
     std::cout << "--------\n";
     for (int i = 0; i < 8; i++) {
@@ -66,10 +99,35 @@ void State::render() {
     std::cout << "--------\n";
 }
 
+std::vector<Move> State::getPositionLegalMoves() {
+    std::vector<Move> moves;
+    moves.push_back(Move('A', 2, 'A', 4));
+
+    return moves;
+
+    // what is my piece?
+    // under the best circumstances, which moves are avaible?
+    // filter to match actual circumstances
+}
+
+// getLegalMoves(bool black){ return Move[?]; }
+State State::stateTransitionFunction(/* move */) {
+    State newState;
+
+    // Take move
+    // Validate move
+    // If valid, return new board, with potentially taken pieces removed
+
+    return newState;
+}
+
 int main() {
     State state;
 
     state.render();
     std::cout << "Value: " << state.value() << std::endl;
+
+    std::cout << state.getPositionLegalMoves()[0].toString() << std::endl;
+
     return 0;
 }
